@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Profile Card Generator | Modern POST Flow</title>
+  <meta name="description" content="Generate beautiful user profile cards by sending POST requests to a Python backend with server-side validation and formatting." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪪</text></svg>" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body data-theme="light">
+  <!-- Header Bar -->
+  <header class="navbar">
+    <div class="container nav-content">
+      <div class="brand">
+        <span class="brand-icon">🪪</span>
+        <div class="brand-text">
+          <h1>Profile Card Generator</h1>
+          <span class="brand-tagline">POST Request Flow &bull; Python Backend &bull; Dynamic UI</span>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <div class="presets-dropdown-wrapper">
+          <label for="preset-select" class="sr-only">Load Sample Profile</label>
+          <select id="preset-select" class="form-select form-select-sm">
+            <option value="">⚡ Load Sample Profile...</option>
+            <option value="preset-1">Cloud Architect (Sarah)</option>
+            <option value="preset-2">UI/UX Designer (Alex)</option>
+            <option value="preset-3">AI / ML Engineer (Maya)</option>
+          </select>
+        </div>
+
+        <button id="toggle-inspector-btn" class="btn btn-secondary btn-sm" title="View HTTP POST Inspector">
+          <span class="icon">⚡</span> <span class="hide-mobile">HTTP Inspector</span>
+        </button>
+
+        <button id="theme-toggle-btn" class="btn btn-icon" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
+          <span class="theme-icon">🌙</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container main-layout">
+    <!-- Left Column: Input Form -->
+    <section class="form-section">
+      <div class="card form-card">
+        <div class="card-header">
+          <div>
+            <h2>Profile Details</h2>
+            <p class="section-subtitle">Fill in the fields to dispatch a <code>POST</code> request.</p>
+          </div>
+          <span class="http-badge" title="Endpoint">POST /api/profile/generate</span>
+        </div>
+
+        <form id="profile-form" novalidate>
+          <!-- Full Name -->
+          <div class="form-group">
+            <label for="input-name">Full Name <span class="required">*</span></label>
+            <input
+              type="text"
+              id="input-name"
+              name="name"
+              class="form-control"
+              placeholder="e.g. Elena Rostova"
+              maxlength="60"
+              required
+            />
+          </div>
+
+          <!-- Role / Title -->
+          <div class="form-group">
+            <label for="input-role">Role / Headline</label>
+            <input
+              type="text"
+              id="input-role"
+              name="role"
+              class="form-control"
+              placeholder="e.g. Lead Full-Stack Engineer"
+              maxlength="80"
+            />
+          </div>
+
+          <!-- Bio -->
+          <div class="form-group">
+            <div class="label-row">
+              <label for="input-bio">Bio / Summary</label>
+              <span id="bio-counter" class="counter">0 / 400</span>
+            </div>
+            <textarea
+              id="input-bio"
+              name="bio"
+              class="form-control"
+              rows="3"
+              maxlength="400"
+              placeholder="Brief summary of experience, interests, or background..."
+            ></textarea>
+          </div>
+
+          <!-- Avatar Image URL -->
+          <div class="form-group">
+            <div class="label-row">
+              <label for="input-avatar">Avatar Image URL</label>
+              <button type="button" id="random-avatar-btn" class="link-btn">🎲 Random Photo</button>
+            </div>
+            <input
+              type="url"
+              id="input-avatar"
+              name="avatar_url"
+              class="form-control"
+              placeholder="https://example.com/avatar.jpg (leave empty for auto avatar)"
+            />
+            <small class="form-hint">Leave blank to let the backend generate an initials-based avatar.</small>
+          </div>
+
+          <!-- Location & Email Row -->
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="input-location">Location</label>
+              <input
+                type="text"
+                id="input-location"
+                name="location"
+                class="form-control"
+                placeholder="e.g. London, UK"
+              />
+            </div>
+            <div class="form-group flex-1">
+              <label for="input-email">Email Address</label>
+              <input
+                type="email"
+                id="input-email"
+                name="email"
+                class="form-control"
+                placeholder="e.g. elena@example.com"
+              />
+            </div>
+          </div>
+
+          <!-- Skills / Tags -->
+          <div class="form-group">
+            <label for="input-skills">Skills / Tags <span class="optional-label">(comma-separated)</span></label>
+            <input
+              type="text"
+              id="input-skills"
+              name="skills"
+              class="form-control"
+              placeholder="e.g. Python, Flask, TypeScript, Docker, PostgreSQL"
+            />
+          </div>
+
+          <!-- Social Links Accordion -->
+          <details class="social-details">
+            <summary class="social-summary">🌐 Social & Portfolio Links (Optional)</summary>
+            <div class="social-inputs">
+              <div class="form-group">
+                <label for="input-github">GitHub</label>
+                <input type="text" id="input-github" class="form-control" placeholder="https://github.com/username" />
+              </div>
+              <div class="form-group">
+                <label for="input-linkedin">LinkedIn</label>
+                <input type="text" id="input-linkedin" class="form-control" placeholder="https://linkedin.com/in/username" />
+              </div>
+              <div class="form-group">
+                <label for="input-twitter">Twitter / X</label>
+                <input type="text" id="input-twitter" class="form-control" placeholder="https://x.com/username" />
+              </div>
+              <div class="form-group">
+                <label for="input-website">Personal Website</label>
+                <input type="text" id="input-website" class="form-control" placeholder="https://myportfolio.dev" />
+              </div>
+            </div>
+          </details>
+
+          <!-- Theme Palette Selector -->
+          <div class="form-group">
+            <label>Card Theme Accent</label>
+            <div class="theme-picker-group">
+              <label class="theme-option">
+                <input type="radio" name="theme" value="indigo" checked />
+                <span class="theme-swatch swatch-indigo" title="Indigo"></span>
+                <span class="theme-name">Indigo</span>
+              </label>
+
+              <label class="theme-option">
+                <input type="radio" name="theme" value="emerald" />
+                <span class="theme-swatch swatch-emerald" title="Emerald"></span>
+                <span class="theme-name">Emerald</span>
+              </label>
+
+              <label class="theme-option">
+                <input type="radio" name="theme" value="sunset" />
+                <span class="theme-swatch swatch-sunset" title="Sunset Orange"></span>
+                <span class="theme-name">Sunset</span>
+              </label>
+
+              <label class="theme-option">
+                <input type="radio" name="theme" value="violet" />
+                <span class="theme-swatch swatch-violet" title="Violet"></span>
+                <span class="theme-name">Violet</span>
+              </label>
+
+              <label class="theme-option">
+                <input type="radio" name="theme" value="cyberpunk" />
+                <span class="theme-swatch swatch-cyberpunk" title="Cyberpunk"></span>
+                <span class="theme-name">Cyber</span>
+              </label>
+
+              <label class="theme-option">
+                <input type="radio" name="theme" value="rose" />
+                <span class="theme-swatch swatch-rose" title="Rose"></span>
+                <span class="theme-name">Rose</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="form-actions">
+            <button type="submit" id="generate-btn" class="btn btn-primary btn-block">
+              <span class="btn-spinner" style="display: none;"></span>
+              <span class="btn-label">✨ Generate Profile Card (POST)</span>
+            </button>
+            <button type="button" id="reset-btn" class="btn btn-outline btn-block">Clear Form</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Educational POST Flow Breakdown Card -->
+      <div class="card flow-info-card">
+        <h3>💡 How the POST Flow Works</h3>
+        <ul class="flow-list">
+          <li><strong>1. UI Event:</strong> User clicks <em>Generate Profile Card</em>. JavaScript captures form values into a JSON object.</li>
+          <li><strong>2. HTTP POST:</strong> Dispatched using <code>fetch('/api/profile/generate', { method: 'POST', body: ... })</code>.</li>
+          <li><strong>3. Backend Processing:</strong> Flask validates fields, sanitizes URLs, creates initials avatar if needed, and computes stats.</li>
+          <li><strong>4. Response & Rendering:</strong> Backend returns <code>200 OK</code> with structured JSON. The UI renders the formatted card!</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Right Column: Live Card Preview & Actions -->
+    <section class="preview-section">
+      <div class="preview-header">
+        <h2>Formatted Profile Card</h2>
+        <span id="preview-status" class="preview-status">Ready</span>
+      </div>
+
+      <!-- The Generated Profile Card Container -->
+      <div id="card-stage" class="card-stage">
+        <!-- Initial / Active Profile Card -->
+        <article id="profile-card" class="profile-card theme-indigo" data-theme="indigo">
+          <!-- Card Banner Header -->
+          <div class="card-banner">
+            <span class="card-pill" id="card-pill-role">Software Engineer</span>
+          </div>
+
+          <!-- Avatar Section -->
+          <div class="avatar-wrap">
+            <img
+              id="card-avatar"
+              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
+              alt="Profile Avatar"
+              class="avatar-img"
+            />
+          </div>
+
+          <!-- Card Body -->
+          <div class="card-content">
+            <div class="card-identity">
+              <h3 id="card-name" class="card-name">Aditya Sharma</h3>
+              <p id="card-role" class="card-headline">Lead Full-Stack Developer</p>
+            </div>
+
+            <!-- Meta details (Location, Email) -->
+            <div class="card-meta">
+              <div id="card-location-wrap" class="meta-item">
+                <span class="meta-icon">📍</span>
+                <span id="card-location">New Delhi, India</span>
+              </div>
+              <div id="card-email-wrap" class="meta-item">
+                <span class="meta-icon">✉️</span>
+                <a id="card-email" href="mailto:aditya@example.com" class="meta-link">aditya@example.com</a>
+              </div>
+            </div>
+
+            <!-- Bio -->
+            <p id="card-bio" class="card-bio">
+              Passionate developer building responsive web applications, robust Python backends, and elegant user interfaces. Enthusiastic about clean architecture and API design.
+            </p>
+
+            <!-- Skills List -->
+            <div class="skills-block">
+              <div class="skills-title">Skills & Technologies</div>
+              <div id="card-skills" class="skills-chips">
+                <span class="chip">Python</span>
+                <span class="chip">Flask</span>
+                <span class="chip">JavaScript</span>
+                <span class="chip">HTML/CSS</span>
+                <span class="chip">REST APIs</span>
+                <span class="chip">SQLite</span>
+              </div>
+            </div>
+
+            <!-- Social Links -->
+            <div class="social-block">
+              <div id="card-socials" class="social-icons">
+                <a id="social-github" href="https://github.com" target="_blank" rel="noopener" class="social-btn" title="GitHub">
+                  <span>GitHub</span>
+                </a>
+                <a id="social-linkedin" href="https://linkedin.com" target="_blank" rel="noopener" class="social-btn" title="LinkedIn">
+                  <span>LinkedIn</span>
+                </a>
+                <a id="social-twitter" href="https://x.com" target="_blank" rel="noopener" class="social-btn" title="Twitter / X">
+                  <span>Twitter</span>
+                </a>
+                <a id="social-website" href="https://example.com" target="_blank" rel="noopener" class="social-btn" title="Website">
+                  <span>Portfolio</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Footer Stats (enriched by Python backend) -->
+          <div class="card-footer-stats">
+            <span id="card-stat-generated">⚡ Processed via Flask POST</span>
+            <span id="card-stat-words">26 words</span>
+          </div>
+        </article>
+      </div>
+
+      <!-- Card Utility Toolbar -->
+      <div class="card-toolbar card">
+        <button id="copy-json-btn" class="btn btn-secondary btn-sm" title="Copy Card JSON">
+          📋 Copy JSON
+        </button>
+        <button id="copy-html-btn" class="btn btn-secondary btn-sm" title="Copy Card HTML">
+          💻 Copy HTML
+        </button>
+        <button id="print-card-btn" class="btn btn-secondary btn-sm" title="Print or Save as PDF">
+          🖨️ Print / PDF
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- HTTP Request-Response Live Inspector Drawer -->
+  <aside id="inspector-drawer" class="inspector-drawer">
+    <div class="inspector-header">
+      <div class="inspector-title">
+        <span class="icon">⚡</span>
+        <h3>HTTP Request-Response Live Inspector</h3>
+      </div>
+      <div class="inspector-actions">
+        <button id="clear-inspector-btn" class="btn btn-xs btn-outline">Clear</button>
+        <button id="close-inspector-btn" class="btn-close" aria-label="Close inspector">&times;</button>
+      </div>
+    </div>
+    <div class="inspector-body">
+      <p class="inspector-hint">Inspect the client-to-server POST request payload and server response:</p>
+      <div id="inspector-logs" class="inspector-logs">
+        <div class="inspector-empty">Waiting for POST requests...</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
